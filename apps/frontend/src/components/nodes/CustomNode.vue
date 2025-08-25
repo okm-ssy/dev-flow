@@ -47,17 +47,7 @@
 
 <script setup lang="ts">
 import { Handle, Position } from '@vue-flow/core';
-import {
-  FileText,
-  Code,
-  GitBranch,
-  Database,
-  Send,
-  Globe,
-  Terminal,
-  Package,
-  Zap,
-} from 'lucide-vue-next';
+import { FileText, Code, GitBranch, Database, Globe, Terminal, Package } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 import { getNodeColor, getIconColor } from '../../composables/useNodeColors';
@@ -82,11 +72,8 @@ const iconMap: Record<string, typeof FileText> = {
   process: Code,
   condition: GitBranch,
   database: Database,
-  output: Send,
   api: Globe,
   script: Terminal,
-  transform: Package,
-  trigger: Zap,
   other: Package,
 };
 

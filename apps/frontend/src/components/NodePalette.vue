@@ -21,17 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  FileText,
-  Code,
-  GitBranch,
-  Database,
-  Send,
-  Globe,
-  Terminal,
-  Package,
-  Zap,
-} from 'lucide-vue-next';
+import { FileText, Code, GitBranch, Database, Globe, Terminal, Package } from 'lucide-vue-next';
 
 import { getBorderColor, getIconColor } from '../composables/useNodeColors';
 import { nodeTemplates } from '../utils/nodeTemplates';
@@ -45,11 +35,9 @@ const iconMap: Record<string, typeof FileText> = {
   Code,
   GitBranch,
   Database,
-  Send,
   Globe,
   Terminal,
   Package,
-  Zap,
 };
 
 function getIcon(iconName: string) {

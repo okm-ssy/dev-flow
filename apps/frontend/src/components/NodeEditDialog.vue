@@ -147,17 +147,7 @@
 <script setup lang="ts">
 import type { Node } from '@vue-flow/core';
 import { X } from 'lucide-vue-next';
-import {
-  FileText,
-  Code,
-  GitBranch,
-  Database,
-  Send,
-  Globe,
-  Terminal,
-  Package,
-  Zap,
-} from 'lucide-vue-next';
+import { FileText, Code, GitBranch, Database, Globe, Terminal, Package } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
 import MonacoEditor from './MonacoEditor.vue';
@@ -182,11 +172,9 @@ const iconMap: Record<string, typeof FileText> = {
   process: Code,
   condition: GitBranch,
   database: Database,
-  output: Send,
   api: Globe,
   script: Terminal,
-  transform: Package,
-  trigger: Zap,
+  other: Package,
 };
 
 function getIcon(type: string) {
@@ -196,14 +184,12 @@ function getIcon(type: string) {
 // パステルカラーの定義（CustomNode.vueと同じ）
 const pastelColors: Record<string, string> = {
   input: '#D1FAE5', // pastel green
-  output: '#DBEAFE', // pastel blue
   process: '#F3F4F6', // pastel gray
   condition: '#FEF3C7', // pastel yellow
   database: '#EDE9FE', // pastel purple
   api: '#E0E7FF', // pastel indigo
   script: '#FED7AA', // pastel orange
-  transform: '#FCE7F3', // pastel pink
-  trigger: '#FECACA', // pastel red
+  other: '#FCE7F3', // pastel pink (fallback)
 };
 
 function getNodeColor(type: string) {
