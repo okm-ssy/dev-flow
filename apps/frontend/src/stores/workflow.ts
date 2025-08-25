@@ -60,6 +60,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
         currentWorkflow.value = data.currentWorkflow || null;
         currentProjectId.value = id;
         return true;
+      } else if (response.status === 404 && id !== 'default') {
+        // Project doesn't exist, try default project
+        console.warn(`Project ${id} not found, falling back to default`);
+        currentProjectId.value = 'default';
+        localStorage.setItem('dev-flow-current-project', 'default');
+        return await loadProject('default');
       }
     } catch (err) {
       console.error('Failed to load project from API:', err);
@@ -79,6 +85,15 @@ export const useWorkflowStore = defineStore('workflow', () => {
         console.error('Failed to load from localStorage:', err);
       }
     }
+
+    // If we still can't load anything and it's not the default project, try default
+    if (id !== 'default') {
+      console.warn(`Failed to load project ${id}, trying default project`);
+      currentProjectId.value = 'default';
+      localStorage.setItem('dev-flow-current-project', 'default');
+      return await loadProject('default');
+    }
+
     return false;
   }
 
