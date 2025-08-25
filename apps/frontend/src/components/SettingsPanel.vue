@@ -268,12 +268,18 @@ const projectList = ref([]);
 async function loadProjects() {
   try {
     const projects = await workflowStore.getProjects();
-    projectList.value = projects.map((p) => ({
-      ...p,
-      lastModified: new Date(p.lastModified).toLocaleString(),
-    }));
+    if (Array.isArray(projects)) {
+      projectList.value = projects.map((p) => ({
+        ...p,
+        lastModified: new Date(p.lastModified).toLocaleString(),
+      }));
+    } else {
+      console.warn('Projects response is not an array:', projects);
+      projectList.value = [];
+    }
   } catch (err) {
     console.error('Failed to load projects:', err);
+    projectList.value = [];
   }
 }
 

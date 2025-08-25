@@ -87,7 +87,18 @@ export const useWorkflowStore = defineStore('workflow', () => {
     try {
       const response = await fetch('/api/projects');
       if (response.ok) {
-        return await response.json();
+        const result = await response.json();
+        // Check if the response is wrapped in a success/data structure
+        if (result && result.data && Array.isArray(result.data)) {
+          return result.data;
+        }
+        // If it's directly an array
+        if (Array.isArray(result)) {
+          return result;
+        }
+        // If neither, log for debugging and return empty array
+        console.warn('Unexpected API response format:', result);
+        return [];
       }
     } catch (err) {
       console.error('Failed to get projects:', err);
