@@ -9,21 +9,14 @@
         :nodes="nodes"
         :edges="edges"
       />
+      <!-- Settings Panel in Sidebar -->
+      <div class="mt-auto border-t border-gray-700">
+        <SettingsPanel :is-sidebar="true" />
+      </div>
     </div>
 
     <!-- Main Editor -->
     <div class="flex-1 relative">
-      <!-- Toolbar -->
-      <div class="absolute top-4 right-4 z-10 flex items-center space-x-2">
-        <button
-          @click="showSettings = true"
-          class="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-lg border border-gray-600"
-          title="プロジェクト設定"
-        >
-          <Settings class="w-5 h-5" />
-        </button>
-      </div>
-
       <VueFlow
         v-model:nodes="nodes"
         v-model:edges="edges"
@@ -48,7 +41,7 @@
           <CustomEdge
             v-bind="edgeProps"
             :depth="edgeDepths.get(edgeProps.id) || 0"
-            :animated="animationEnabled"
+            :animated="true"
           />
         </template>
 
@@ -85,23 +78,10 @@
         @update="handleNodeUpdate"
         @close="selectedNode = null"
       />
-
-      <!-- Settings Panel -->
-      <SettingsPanel :is-open="showSettings" @close="showSettings = false" />
     </div>
 
     <!-- Error Notification -->
     <ErrorNotification v-if="error" :message="error" @close="error = null" />
-
-    <!-- Depth Legend -->
-    <DepthLegend v-if="edges.length > 0" :node-editor-open="!!selectedNode" />
-
-    <!-- Animation Controls -->
-    <AnimationControls
-      v-if="edges.length > 0"
-      @toggle-animation="handleAnimationToggle"
-      @speed-change="handleSpeedChange"
-    />
   </div>
 </template>
 
@@ -110,17 +90,14 @@ import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import { VueFlow, ConnectionMode, useVueFlow, type Node, type Edge } from '@vue-flow/core';
 import { MiniMap } from '@vue-flow/minimap';
-import { Settings } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
-import { ref, onMounted } from 'vue';
+import { onMounted } from 'vue';
 
 import { useEdgeDepth } from '../composables/useEdgeDepth';
 import { useWorkflowStore } from '../stores/workflow';
 import { nodeTemplates } from '../utils/nodeTemplates';
 
-import AnimationControls from './AnimationControls.vue';
 import CustomEdge from './CustomEdge.vue';
-import DepthLegend from './DepthLegend.vue';
 import ErrorNotification from './ErrorNotification.vue';
 import ExportPanel from './ExportPanel.vue';
 import NodeEditDialog from './NodeEditDialog.vue';
@@ -144,13 +121,6 @@ const {
 
 const { project } = useVueFlow();
 const { edgeDepths } = useEdgeDepth(nodes.value, edges.value);
-
-// Animation controls
-const animationEnabled = ref(true);
-const animationSpeed = ref(1);
-
-// Settings panel
-const showSettings = ref(false);
 
 // Color function for edges
 function getEdgeColor(depth: number) {
@@ -246,16 +216,6 @@ function updateNodeData(nodeId: string, data: unknown) {
       data: { ...node.data, ...data },
     });
   }
-}
-
-function handleAnimationToggle(enabled: boolean) {
-  animationEnabled.value = enabled;
-}
-
-function handleSpeedChange(speed: number) {
-  animationSpeed.value = speed;
-  // Update CSS animation speed
-  document.documentElement.style.setProperty('--animation-speed', `${1 / speed}s`);
 }
 
 function onNodesDelete(deletedNodes: Node[]) {

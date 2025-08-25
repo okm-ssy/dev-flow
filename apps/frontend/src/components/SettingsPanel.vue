@@ -1,4 +1,5 @@
 <template>
+  <!-- Full Screen Settings Modal -->
   <div
     v-if="isOpen"
     class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
@@ -25,39 +26,28 @@
           <!-- Current Project -->
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">現在のプロジェクト</label>
-            <div class="flex items-center space-x-3">
-              <input
-                v-model="currentProjectId"
-                type="text"
-                class="flex-1 px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="project-id"
-              />
-              <button
-                @click="switchProject"
-                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                切替
-              </button>
-            </div>
+            <select
+              v-model="currentProjectId"
+              @change="switchProject"
+              class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option v-if="projectList.length === 0" :value="currentProjectId">
+                {{ currentProjectId }}
+              </option>
+              <option v-for="project in projectList" :key="project.id" :value="project.id">
+                {{ project.id }} ({{ project.nodeCount }} nodes, {{ project.edgeCount }} edges)
+              </option>
+            </select>
           </div>
 
           <!-- Create New Project -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">新しいプロジェクト</label>
-            <div class="flex items-center space-x-3">
-              <input
-                v-model="newProjectId"
-                type="text"
-                class="flex-1 px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="new-project-id"
-              />
-              <button
-                @click="createProject"
-                class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-              >
-                作成
-              </button>
-            </div>
+            <button
+              @click="createNewProject"
+              class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              新しいプロジェクト作成
+            </button>
           </div>
 
           <!-- Project List -->
@@ -99,43 +89,36 @@
         <div class="space-y-4">
           <h3 class="text-lg font-medium text-gray-200">JSON インポート/エクスポート</h3>
 
-          <!-- Export -->
+          <!-- Combined Import/Export -->
           <div>
             <div class="flex items-center justify-between mb-2">
-              <label class="block text-sm font-medium text-gray-300"
-                >エクスポート (現在のワークフロー)</label
-              >
-              <button
-                @click="copyToClipboard"
-                class="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-500 transition-colors"
-              >
-                コピー
-              </button>
+              <label class="block text-sm font-medium text-gray-300">JSON 入出力</label>
+              <div class="flex space-x-2">
+                <button
+                  @click="exportToTextarea"
+                  class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                >
+                  エクスポート
+                </button>
+                <button
+                  @click="importFromJson"
+                  class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
+                  :disabled="!jsonTextarea.trim()"
+                >
+                  インポート
+                </button>
+                <button
+                  @click="copyJsonToClipboard"
+                  class="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-500 transition-colors"
+                >
+                  コピー
+                </button>
+              </div>
             </div>
             <textarea
-              v-model="exportJson"
-              readonly
-              class="w-full h-32 px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 rounded-md focus:outline-none resize-none font-mono text-sm"
-              placeholder="エクスポートされたJSONがここに表示されます"
-            />
-          </div>
-
-          <!-- Import -->
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <label class="block text-sm font-medium text-gray-300">インポート</label>
-              <button
-                @click="importFromJson"
-                class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
-                :disabled="!importJson.trim()"
-              >
-                インポート
-              </button>
-            </div>
-            <textarea
-              v-model="importJson"
+              v-model="jsonTextarea"
               class="w-full h-32 px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none font-mono text-sm"
-              placeholder="インポートするJSONを貼り付けてください"
+              placeholder="JSON入出力エリア"
             />
             <div v-if="importError" class="mt-2 text-red-400 text-sm">
               {{ importError }}
@@ -155,6 +138,70 @@
       </div>
     </div>
   </div>
+
+  <!-- Sidebar Settings Panel -->
+  <div v-else-if="isSidebar" class="p-4 bg-gray-800 text-sm">
+    <!-- Project Selection -->
+    <div class="mb-4">
+      <label class="block text-xs font-medium text-gray-400 mb-1">プロジェクト</label>
+      <select
+        v-model="currentProjectId"
+        @change="switchProject"
+        class="w-full px-2 py-1 text-xs border border-gray-600 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+      >
+        <option v-if="projectList.length === 0" :value="currentProjectId">
+          {{ currentProjectId }}
+        </option>
+        <option v-for="project in projectList" :key="project.id" :value="project.id">
+          {{ project.id }} ({{ project.nodeCount }}n {{ project.edgeCount }}e)
+        </option>
+      </select>
+    </div>
+
+    <!-- Create New Project Button -->
+    <button
+      @click="createNewProject"
+      class="w-full mb-4 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+    >
+      新しいプロジェクト
+    </button>
+
+    <!-- JSON Import/Export -->
+    <div class="mb-2">
+      <div class="flex items-center justify-between mb-1">
+        <label class="text-xs font-medium text-gray-400">JSON</label>
+        <div class="flex space-x-1">
+          <button
+            @click="exportToTextarea"
+            class="px-2 py-0.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            ↓
+          </button>
+          <button
+            @click="importFromJson"
+            class="px-2 py-0.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+            :disabled="!jsonTextarea.trim()"
+          >
+            ↑
+          </button>
+          <button
+            @click="copyJsonToClipboard"
+            class="px-2 py-0.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors"
+          >
+            📋
+          </button>
+        </div>
+      </div>
+      <textarea
+        v-model="jsonTextarea"
+        class="w-full h-20 px-2 py-1 text-xs border border-gray-600 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none font-mono"
+        placeholder="JSON入出力"
+      />
+      <div v-if="importError" class="mt-1 text-red-400 text-xs">
+        {{ importError }}
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -163,8 +210,9 @@ import { ref, computed, watch, onMounted } from 'vue';
 
 import { useWorkflowStore } from '../stores/workflow';
 
-const _props = defineProps<{
-  isOpen: boolean;
+const props = defineProps<{
+  isOpen?: boolean;
+  isSidebar?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -177,6 +225,7 @@ const currentProjectId = ref('default');
 const newProjectId = ref('');
 const importJson = ref('');
 const importError = ref('');
+const jsonTextarea = ref('');
 
 // Export JSON (current workflow state)
 const exportJson = computed(() => {
@@ -206,7 +255,9 @@ async function loadProjects() {
 }
 
 function closeSettings() {
-  emit('close');
+  if (props.isOpen) {
+    emit('close');
+  }
 }
 
 function switchProject() {
@@ -222,7 +273,7 @@ function switchProject() {
   workflowStore.loadProject(currentProjectId.value.trim());
 }
 
-function createProject() {
+function _createProject() {
   if (!newProjectId.value.trim()) {
     alert('プロジェクトIDを入力してください');
     return;
@@ -257,6 +308,7 @@ async function deleteProject(projectId: string) {
       if (!response.ok) {
         throw new Error('Failed to delete project');
       }
+      loadProjects();
     } catch (err) {
       console.error('Failed to delete project:', err);
       alert('プロジェクトの削除に失敗しました');
@@ -264,7 +316,7 @@ async function deleteProject(projectId: string) {
   }
 }
 
-function copyToClipboard() {
+function _copyToClipboard() {
   navigator.clipboard.writeText(exportJson.value).then(() => {
     alert('クリップボードにコピーしました');
   });
@@ -273,13 +325,14 @@ function copyToClipboard() {
 function importFromJson() {
   importError.value = '';
 
-  if (!importJson.value.trim()) {
+  const jsonInput = props.isSidebar ? jsonTextarea.value : importJson.value;
+  if (!jsonInput.trim()) {
     importError.value = 'JSONを入力してください';
     return;
   }
 
   try {
-    const data = JSON.parse(importJson.value);
+    const data = JSON.parse(jsonInput);
 
     // Validate structure
     if (!data.nodes || !Array.isArray(data.nodes)) {
@@ -301,11 +354,47 @@ function importFromJson() {
     // Save imported data
     workflowStore.saveProject();
 
-    importJson.value = '';
+    if (props.isSidebar) {
+      jsonTextarea.value = '';
+    } else {
+      importJson.value = '';
+    }
     alert('JSONを正常にインポートしました');
   } catch (err) {
     importError.value = err instanceof Error ? err.message : '無効なJSON形式です';
   }
+}
+
+function exportToTextarea() {
+  jsonTextarea.value = exportJson.value;
+}
+
+function copyJsonToClipboard() {
+  const textToCopy = jsonTextarea.value || exportJson.value;
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    alert('クリップボードにコピーしました');
+  });
+}
+
+function createNewProject() {
+  const projectId = prompt('新しいプロジェクトIDを入力してください:');
+  if (!projectId || !projectId.trim()) {
+    return;
+  }
+
+  // Clear current workflow
+  workflowStore.nodes = [];
+  workflowStore.edges = [];
+  workflowStore.currentWorkflow = null;
+
+  currentProjectId.value = projectId.trim();
+
+  // Save current project ID to localStorage
+  localStorage.setItem('dev-flow-current-project', currentProjectId.value);
+
+  // Save empty project
+  workflowStore.saveProject();
+  loadProjects();
 }
 
 // Watch for project ID changes
