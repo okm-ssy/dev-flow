@@ -183,12 +183,17 @@ function handleAddNode(type: string) {
     y: baseY + row * offsetY,
   });
 
+  // Extract Japanese label only (before "/" if exists)
+  const japaneseLabel = template.label.includes(' / ')
+    ? template.label.split(' / ')[0]
+    : template.label;
+
   const newNode = {
     id: `${type}_${Date.now()}`,
     type: 'custom',
     position,
     data: {
-      label: template.label,
+      label: japaneseLabel,
       type,
       config: template.defaultConfig || {},
       inputs: template.inputs || [],

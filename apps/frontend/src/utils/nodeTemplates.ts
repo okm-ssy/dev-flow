@@ -2,7 +2,7 @@ import type { NodeTemplate } from '../types';
 
 export const nodeTemplates: Record<string, NodeTemplate> = {
   input: {
-    label: '事前準備',
+    label: '事前準備 / Input',
     icon: 'FileText',
     defaultConfig: {
       source: 'file',
@@ -11,7 +11,7 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     outputs: [{ id: 'output', label: 'Data' }],
   },
   process: {
-    label: '手作業',
+    label: '手作業 / Process',
     icon: 'Code',
     defaultConfig: {
       operation: 'transform',
@@ -20,7 +20,7 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     outputs: [{ id: 'output', label: 'Output' }],
   },
   condition: {
-    label: '条件分岐',
+    label: '条件分岐 / Condition',
     icon: 'GitBranch',
     defaultConfig: {
       condition: '',
@@ -32,7 +32,7 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     ],
   },
   database: {
-    label: 'SQL 実行',
+    label: 'SQL 実行 / Database',
     icon: 'Database',
     defaultConfig: {
       type: 'postgres',
@@ -42,7 +42,7 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     outputs: [{ id: 'result', label: 'Result' }],
   },
   api: {
-    label: 'API 実行',
+    label: 'API 実行 / API Call',
     icon: 'Globe',
     defaultConfig: {
       method: 'GET',
@@ -52,7 +52,7 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     outputs: [{ id: 'response', label: 'Response' }],
   },
   script: {
-    label: 'CLI 実行',
+    label: 'CLI 実行 / Script',
     icon: 'Terminal',
     defaultConfig: {
       language: 'javascript',
