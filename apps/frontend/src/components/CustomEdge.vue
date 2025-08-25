@@ -62,11 +62,9 @@ const edgeStyle = computed(() => ({
   animation: 'dash 1s linear infinite',
 }));
 
-// Animation duration based on edge length
+// Fixed animation duration for consistent timing regardless of edge length
+// This makes short edges animate slowly and long edges animate quickly
 const animationDuration = computed(() => {
-  const length = Math.sqrt(
-    Math.pow(props.targetX - props.sourceX, 2) + Math.pow(props.targetY - props.sourceY, 2)
-  );
-  return Math.max(2, length / 100); // Minimum 2 seconds, scale with length
+  return 3; // Fixed 3 seconds for all edges
 });
 </script>
