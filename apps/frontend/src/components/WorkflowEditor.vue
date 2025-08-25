@@ -4,7 +4,7 @@
     <div class="w-64 bg-gray-900 border-r border-gray-700 flex flex-col">
       <!-- Settings Panel in Sidebar -->
       <div class="border-b border-gray-700">
-        <SettingsPanel :is-sidebar="true" />
+        <SettingsPanel />
       </div>
       <NodePalette @add-node="handleAddNode" />
       <ExportPanel
