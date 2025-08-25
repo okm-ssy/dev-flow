@@ -1,9 +1,11 @@
 import type { Node, Edge, Connection } from '@vue-flow/core';
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 import { api } from '../services/api';
 import type { Workflow, WorkflowNode, WorkflowData } from '../types';
+
+const STORAGE_KEY = 'dev-flow-workflow';
 
 export const useWorkflowStore = defineStore('workflow', () => {
   const nodes = ref<Node[]>([]);
@@ -16,6 +18,47 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const nodeCount = computed(() => nodes.value.length);
   const edgeCount = computed(() => edges.value.length);
+
+  // Save to localStorage whenever nodes or edges change
+  function saveToLocalStorage() {
+    const data = {
+      nodes: nodes.value,
+      edges: edges.value,
+      currentWorkflow: currentWorkflow.value,
+      timestamp: new Date().toISOString(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  // Load from localStorage
+  function loadFromLocalStorage() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        nodes.value = data.nodes || [];
+        edges.value = data.edges || [];
+        currentWorkflow.value = data.currentWorkflow || null;
+        return true;
+      } catch (err) {
+        console.error('Failed to load from localStorage:', err);
+        return false;
+      }
+    }
+    return false;
+  }
+
+  // Auto-save when data changes
+  watch(
+    [nodes, edges],
+    () => {
+      saveToLocalStorage();
+    },
+    { deep: true }
+  );
+
+  // Initialize by loading from localStorage
+  loadFromLocalStorage();
 
   async function loadWorkflows() {
     loading.value = true;
@@ -213,5 +256,9 @@ export const useWorkflowStore = defineStore('workflow', () => {
     removeEdges,
     selectNode,
     exportWorkflow,
+
+    // LocalStorage
+    saveToLocalStorage,
+    loadFromLocalStorage,
   };
 });
