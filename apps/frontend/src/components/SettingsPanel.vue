@@ -403,7 +403,7 @@ function copyJsonToClipboard() {
   });
 }
 
-function createNewProject() {
+async function createNewProject() {
   const projectId = prompt('新しいプロジェクトIDを入力してください:');
   if (!projectId || !projectId.trim()) {
     return;
@@ -419,9 +419,11 @@ function createNewProject() {
   // Save current project ID to localStorage
   localStorage.setItem('dev-flow-current-project', currentProjectId.value);
 
-  // Save empty project
-  workflowStore.saveProject();
-  loadProjects();
+  // Save empty project and wait for completion
+  await workflowStore.saveProject(currentProjectId.value);
+
+  // Update project list after saving is complete
+  await loadProjects();
 }
 
 // Watch for project ID changes

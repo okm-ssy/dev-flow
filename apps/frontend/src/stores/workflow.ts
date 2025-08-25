@@ -19,7 +19,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const edgeCount = computed(() => edges.value.length);
 
   // Save project data to local file system via API
-  async function saveProject(projectId?: string) {
+  async function saveProject(projectId?: string): Promise<boolean> {
     const id = projectId || currentProjectId.value;
     const data = {
       projectId: id,
@@ -39,10 +39,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
       if (!response.ok) {
         throw new Error('Failed to save project');
       }
+      return true;
     } catch (err) {
       console.error('Failed to save project:', err);
       // Fallback to localStorage
       localStorage.setItem(`dev-flow-project-${id}`, JSON.stringify(data));
+      return false; // API save failed, using localStorage fallback
     }
   }
 
@@ -160,7 +162,14 @@ export const useWorkflowStore = defineStore('workflow', () => {
   if (savedProjectId) {
     currentProjectId.value = savedProjectId;
   }
-  loadProject();
+
+  // Load project with error handling for startup
+  loadProject().catch((err) => {
+    console.warn('Failed to load project on startup, resetting to default:', err);
+    currentProjectId.value = 'default';
+    localStorage.setItem('dev-flow-current-project', 'default');
+    loadProject('default');
+  });
 
   async function loadWorkflows() {
     loading.value = true;
