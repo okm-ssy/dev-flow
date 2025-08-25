@@ -15,6 +15,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const error = ref<string | null>(null);
   const selectedNode = ref<Node | null>(null);
   const currentProjectId = ref<string>('default');
+  const autoSaveEnabled = ref(true);
 
   const nodeCount = computed(() => nodes.value.length);
   const edgeCount = computed(() => edges.value.length);
@@ -149,11 +150,13 @@ export const useWorkflowStore = defineStore('workflow', () => {
     currentProjectId.value = projectId;
   }
 
-  // Auto-save when data changes
+  // Auto-save when data changes (only when enabled)
   watch(
     [nodes, edges],
     () => {
-      saveProject();
+      if (autoSaveEnabled.value) {
+        saveProject();
+      }
     },
     { deep: true }
   );
@@ -354,25 +357,40 @@ export const useWorkflowStore = defineStore('workflow', () => {
         throw new Error(UI_MESSAGES.JSON_EDGES_MISSING);
       }
 
-      // Clear existing data
-      nodes.value = [];
-      edges.value = [];
-      currentWorkflow.value = null;
+      // Temporarily disable auto-save during import to prevent race condition
+      autoSaveEnabled.value = false;
 
-      // Import new data
-      nodes.value = [...data.nodes];
-      edges.value = [...data.edges];
-      currentWorkflow.value = data.currentWorkflow || null;
+      const originalNodes = nodes.value;
+      const originalEdges = edges.value;
+      const originalWorkflow = currentWorkflow.value;
 
-      // Update project ID if provided
-      if (data.projectId) {
-        currentProjectId.value = data.projectId;
-        localStorage.setItem('dev-flow-current-project', data.projectId);
+      try {
+        // Import new data directly without clearing first
+        nodes.value = [...data.nodes];
+        edges.value = [...data.edges];
+        currentWorkflow.value = data.currentWorkflow || null;
+
+        // Update project ID if provided
+        if (data.projectId) {
+          currentProjectId.value = data.projectId;
+          localStorage.setItem('dev-flow-current-project', data.projectId);
+        }
+
+        // Re-enable auto-save
+        autoSaveEnabled.value = true;
+
+        return true;
+      } catch (importErr) {
+        // Rollback on error
+        nodes.value = originalNodes;
+        edges.value = originalEdges;
+        currentWorkflow.value = originalWorkflow;
+        autoSaveEnabled.value = true;
+        throw importErr;
       }
-
-      return true;
     } catch (err) {
       console.error('Failed to import project data:', err);
+      autoSaveEnabled.value = true;
       throw err;
     }
   }

@@ -373,13 +373,19 @@ async function importFromJson() {
       currentProjectId.value = data.projectId;
     }
 
-    // Save imported data
-    await workflowStore.saveProject();
+    // Save imported data with a slight delay to ensure state is updated
+    setTimeout(async () => {
+      await workflowStore.saveProject();
+    }, 100);
 
     if (!props.isSidebar) {
       jsonTextarea.value = '';
     }
+
     alert(UI_MESSAGES.JSON_IMPORT_SUCCESS);
+
+    // Refresh the projects list
+    await loadProjects();
   } catch (err) {
     importError.value = err instanceof Error ? err.message : UI_MESSAGES.JSON_IMPORT_ERROR;
   }
