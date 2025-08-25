@@ -4,6 +4,7 @@ import { ref, computed, watch, readonly } from 'vue';
 
 import { api } from '../services/api';
 import type { Workflow, WorkflowNode, WorkflowData } from '../types';
+import { UI_MESSAGES } from '../utils/constants';
 
 export const useWorkflowStore = defineStore('workflow', () => {
   const nodes = ref<Node[]>([]);
@@ -338,6 +339,44 @@ export const useWorkflowStore = defineStore('workflow', () => {
     };
   }
 
+  function importProjectData(data: {
+    nodes: Node[];
+    edges: Edge[];
+    currentWorkflow?: Workflow | null;
+    projectId?: string;
+  }) {
+    try {
+      // Validate structure
+      if (!data.nodes || !Array.isArray(data.nodes)) {
+        throw new Error(UI_MESSAGES.JSON_NODES_MISSING);
+      }
+      if (!data.edges || !Array.isArray(data.edges)) {
+        throw new Error(UI_MESSAGES.JSON_EDGES_MISSING);
+      }
+
+      // Clear existing data
+      nodes.value = [];
+      edges.value = [];
+      currentWorkflow.value = null;
+
+      // Import new data
+      nodes.value = [...data.nodes];
+      edges.value = [...data.edges];
+      currentWorkflow.value = data.currentWorkflow || null;
+
+      // Update project ID if provided
+      if (data.projectId) {
+        currentProjectId.value = data.projectId;
+        localStorage.setItem('dev-flow-current-project', data.projectId);
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Failed to import project data:', err);
+      throw err;
+    }
+  }
+
   return {
     // State
     nodes,
@@ -367,6 +406,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     removeEdges,
     selectNode,
     exportWorkflow,
+    importProjectData,
 
     // Project Management
     saveProject,

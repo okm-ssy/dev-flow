@@ -225,6 +225,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { Collapse } from 'vue-collapsed';
 
 import { useWorkflowStore } from '../stores/workflow';
+import { UI_MESSAGES } from '../utils/constants';
 
 const props = defineProps<{
   isOpen?: boolean;
@@ -239,7 +240,6 @@ const workflowStore = useWorkflowStore();
 
 const currentProjectId = ref('default');
 const newProjectId = ref('');
-const importJson = ref('');
 const importError = ref('');
 const jsonTextarea = ref('');
 const isCollapsed = ref(false);
@@ -353,44 +353,35 @@ function _copyToClipboard() {
   });
 }
 
-function importFromJson() {
+async function importFromJson() {
   importError.value = '';
 
-  const jsonInput = props.isSidebar ? displayedJson.value : importJson.value;
+  const jsonInput = props.isSidebar ? displayedJson.value : jsonTextarea.value;
   if (!jsonInput.trim()) {
-    importError.value = 'JSONを入力してください';
+    importError.value = UI_MESSAGES.JSON_INPUT_REQUIRED;
     return;
   }
 
   try {
     const data = JSON.parse(jsonInput);
 
-    // Validate structure
-    if (!data.nodes || !Array.isArray(data.nodes)) {
-      throw new Error('無効なJSON形式: nodesが見つかりません');
-    }
-    if (!data.edges || !Array.isArray(data.edges)) {
-      throw new Error('無効なJSON形式: edgesが見つかりません');
-    }
+    // Use the new import function from workflow store
+    workflowStore.importProjectData(data);
 
-    // Import data
-    workflowStore.nodes = data.nodes;
-    workflowStore.edges = data.edges;
-    workflowStore.currentWorkflow = data.currentWorkflow || null;
-
+    // Update current project ID display
     if (data.projectId) {
       currentProjectId.value = data.projectId;
     }
 
     // Save imported data
-    workflowStore.saveProject();
+    await workflowStore.saveProject();
 
     if (!props.isSidebar) {
-      importJson.value = '';
+      jsonTextarea.value = '';
     }
-    alert('JSONを正常にインポートしました');
+    alert(UI_MESSAGES.JSON_IMPORT_SUCCESS);
   } catch (err) {
-    importError.value = err instanceof Error ? err.message : '無効なJSON形式です';
+    importError.value = err instanceof Error ? err.message : UI_MESSAGES.JSON_IMPORT_ERROR;
   }
 }
 
@@ -401,7 +392,7 @@ function exportToTextarea() {
 function copyJsonToClipboard() {
   const textToCopy = props.isSidebar ? displayedJson.value : exportJson.value;
   navigator.clipboard.writeText(textToCopy).then(() => {
-    alert('クリップボードにコピーしました');
+    alert(UI_MESSAGES.CLIPBOARD_COPY_SUCCESS);
   });
 }
 
