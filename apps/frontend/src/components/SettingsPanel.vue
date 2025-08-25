@@ -144,19 +144,19 @@
     <!-- Collapsible Header -->
     <button
       @click="isCollapsed = !isCollapsed"
-      class="w-full flex items-center justify-between px-4 py-2 bg-gray-700 hover:bg-gray-600 transition-colors"
+      class="w-full flex items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 transition-colors"
     >
-      <span class="text-xs font-medium text-gray-200">プロジェクト設定</span>
       <span
-        class="transform transition-transform text-gray-400"
-        :class="{ 'rotate-180': !isCollapsed }"
+        class="transform transition-transform text-gray-400 mr-2"
+        :class="{ 'rotate-90': !isCollapsed }"
       >
-        ▼
+        ▶
       </span>
+      <span class="text-xs font-medium text-gray-200">プロジェクト設定</span>
     </button>
 
     <!-- Collapsible Content -->
-    <Collapsed :when="isCollapsed">
+    <Collapse :when="isCollapsed">
       <div class="p-4">
         <!-- Project Selection -->
         <div class="mb-4">
@@ -183,23 +183,17 @@
           新しいプロジェクト
         </button>
 
-        <!-- JSON Import/Export -->
+        <!-- JSON Display/Import -->
         <div class="mb-2">
           <div class="flex items-center justify-between mb-1">
             <label class="text-xs font-medium text-gray-400">JSON</label>
             <div class="flex space-x-1">
               <button
-                @click="exportToTextarea"
-                class="px-2 py-0.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                ↓
-              </button>
-              <button
                 @click="importFromJson"
                 class="px-2 py-0.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                :disabled="!jsonTextarea.trim()"
+                :disabled="!displayedJson.trim()"
               >
-                ↑
+                インポート
               </button>
               <button
                 @click="copyJsonToClipboard"
@@ -210,7 +204,7 @@
             </div>
           </div>
           <textarea
-            v-model="jsonTextarea"
+            v-model="displayedJson"
             class="w-full h-20 px-2 py-1 text-xs border border-gray-600 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none font-mono"
             placeholder="JSON入出力"
           />
@@ -219,14 +213,14 @@
           </div>
         </div>
       </div>
-    </Collapsed>
+    </Collapse>
   </div>
 </template>
 
 <script setup lang="ts">
 import { X } from 'lucide-vue-next';
 import { ref, computed, watch, onMounted } from 'vue';
-import { Collapsed } from 'vue-collapsed';
+import { Collapse } from 'vue-collapsed';
 
 import { useWorkflowStore } from '../stores/workflow';
 
@@ -247,6 +241,14 @@ const importJson = ref('');
 const importError = ref('');
 const jsonTextarea = ref('');
 const isCollapsed = ref(false);
+
+// Always display current JSON state
+const displayedJson = computed({
+  get: () => exportJson.value,
+  set: (value: string) => {
+    jsonTextarea.value = value;
+  },
+});
 
 // Export JSON (current workflow state)
 const exportJson = computed(() => {
@@ -346,7 +348,7 @@ function _copyToClipboard() {
 function importFromJson() {
   importError.value = '';
 
-  const jsonInput = props.isSidebar ? jsonTextarea.value : importJson.value;
+  const jsonInput = props.isSidebar ? displayedJson.value : importJson.value;
   if (!jsonInput.trim()) {
     importError.value = 'JSONを入力してください';
     return;
@@ -375,9 +377,7 @@ function importFromJson() {
     // Save imported data
     workflowStore.saveProject();
 
-    if (props.isSidebar) {
-      jsonTextarea.value = '';
-    } else {
+    if (!props.isSidebar) {
       importJson.value = '';
     }
     alert('JSONを正常にインポートしました');
@@ -391,7 +391,7 @@ function exportToTextarea() {
 }
 
 function copyJsonToClipboard() {
-  const textToCopy = jsonTextarea.value || exportJson.value;
+  const textToCopy = props.isSidebar ? displayedJson.value : exportJson.value;
   navigator.clipboard.writeText(textToCopy).then(() => {
     alert('クリップボードにコピーしました');
   });
