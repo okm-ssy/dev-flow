@@ -13,6 +13,17 @@
 
     <!-- Main Editor -->
     <div class="flex-1 relative">
+      <!-- Toolbar -->
+      <div class="absolute top-4 right-4 z-10 flex items-center space-x-2">
+        <button
+          @click="showSettings = true"
+          class="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-lg border border-gray-600"
+          title="プロジェクト設定"
+        >
+          <Settings class="w-5 h-5" />
+        </button>
+      </div>
+
       <VueFlow
         v-model:nodes="nodes"
         v-model:edges="edges"
@@ -74,6 +85,9 @@
         @update="handleNodeUpdate"
         @close="selectedNode = null"
       />
+
+      <!-- Settings Panel -->
+      <SettingsPanel :is-open="showSettings" @close="showSettings = false" />
     </div>
 
     <!-- Error Notification -->
@@ -96,6 +110,7 @@ import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import { VueFlow, ConnectionMode, useVueFlow, type Node, type Edge } from '@vue-flow/core';
 import { MiniMap } from '@vue-flow/minimap';
+import { Settings } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
 import { ref, onMounted } from 'vue';
 
@@ -110,6 +125,7 @@ import ErrorNotification from './ErrorNotification.vue';
 import ExportPanel from './ExportPanel.vue';
 import NodeEditDialog from './NodeEditDialog.vue';
 import NodePalette from './NodePalette.vue';
+import SettingsPanel from './SettingsPanel.vue';
 import CustomNode from './nodes/CustomNode.vue';
 
 const workflowStore = useWorkflowStore();
@@ -132,6 +148,9 @@ const { edgeDepths } = useEdgeDepth(nodes.value, edges.value);
 // Animation controls
 const animationEnabled = ref(true);
 const animationSpeed = ref(1);
+
+// Settings panel
+const showSettings = ref(false);
 
 // Color function for edges
 function getEdgeColor(depth: number) {

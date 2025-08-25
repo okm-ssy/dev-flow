@@ -55,6 +55,7 @@ apps/api/data/
 # Local data storage
 /data/
 data/
+!data/.keep
 
 # Temporary files
 *.tmp

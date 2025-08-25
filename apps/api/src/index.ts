@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import { workflowRoutes } from './routes/workflows';
+import { projectRoutes } from './routes/projects';
 import { errorHandler } from './middleware/errorHandler';
 import { fileStorage } from './services/file-storage';
+import { projectStorage } from './services/project-storage';
 
 const app = express();
 const PORT = process.env.PORT || 9191;
@@ -10,8 +12,9 @@ const PORT = process.env.PORT || 9191;
 // Initialize database and start server
 async function startServer() {
   try {
-    // Initialize file storage
+    // Initialize storages
     fileStorage.initialize();
+    projectStorage.initialize();
 
     // Middleware
     app.use(cors({
@@ -23,6 +26,7 @@ async function startServer() {
 
     // Routes
     app.use('/api/workflows', workflowRoutes);
+    app.use('/api/projects', projectRoutes);
 
     // Health check endpoint
     app.get('/api/health', (req, res) => {

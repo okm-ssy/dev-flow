@@ -1,11 +1,9 @@
 import type { Node, Edge, Connection } from '@vue-flow/core';
 import { defineStore } from 'pinia';
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, readonly } from 'vue';
 
 import { api } from '../services/api';
 import type { Workflow, WorkflowNode, WorkflowData } from '../types';
-
-const STORAGE_KEY = 'dev-flow-workflow';
 
 export const useWorkflowStore = defineStore('workflow', () => {
   const nodes = ref<Node[]>([]);
@@ -15,50 +13,128 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const selectedNode = ref<Node | null>(null);
+  const currentProjectId = ref<string>('default');
 
   const nodeCount = computed(() => nodes.value.length);
   const edgeCount = computed(() => edges.value.length);
 
-  // Save to localStorage whenever nodes or edges change
-  function saveToLocalStorage() {
+  // Save project data to local file system via API
+  async function saveProject(projectId?: string) {
+    const id = projectId || currentProjectId.value;
     const data = {
+      projectId: id,
       nodes: nodes.value,
       edges: edges.value,
       currentWorkflow: currentWorkflow.value,
       timestamp: new Date().toISOString(),
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: id, data }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save project');
+      }
+    } catch (err) {
+      console.error('Failed to save project:', err);
+      // Fallback to localStorage
+      localStorage.setItem(`dev-flow-project-${id}`, JSON.stringify(data));
+    }
   }
 
-  // Load from localStorage
-  function loadFromLocalStorage() {
-    const saved = localStorage.getItem(STORAGE_KEY);
+  // Load project data from local file system via API
+  async function loadProject(projectId?: string) {
+    const id = projectId || currentProjectId.value;
+
+    try {
+      const response = await fetch(`/api/projects/${id}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        nodes.value = data.nodes || [];
+        edges.value = data.edges || [];
+        currentWorkflow.value = data.currentWorkflow || null;
+        currentProjectId.value = id;
+        return true;
+      }
+    } catch (err) {
+      console.error('Failed to load project from API:', err);
+    }
+
+    // Fallback to localStorage
+    const saved = localStorage.getItem(`dev-flow-project-${id}`);
     if (saved) {
       try {
         const data = JSON.parse(saved);
         nodes.value = data.nodes || [];
         edges.value = data.edges || [];
         currentWorkflow.value = data.currentWorkflow || null;
+        currentProjectId.value = id;
         return true;
       } catch (err) {
         console.error('Failed to load from localStorage:', err);
-        return false;
       }
     }
     return false;
+  }
+
+  // Get list of available projects
+  async function getProjects() {
+    try {
+      const response = await fetch('/api/projects');
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (err) {
+      console.error('Failed to get projects:', err);
+    }
+
+    // Fallback: get from localStorage
+    const projects = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('dev-flow-project-')) {
+        const projectId = key.replace('dev-flow-project-', '');
+        try {
+          const data = JSON.parse(localStorage.getItem(key) || '{}');
+          projects.push({
+            id: projectId,
+            nodeCount: data.nodes?.length || 0,
+            edgeCount: data.edges?.length || 0,
+            lastModified: data.timestamp,
+          });
+        } catch (err) {
+          console.error('Failed to parse project data:', err);
+        }
+      }
+    }
+    return projects;
+  }
+
+  // Set current project ID
+  function setCurrentProjectId(projectId: string) {
+    currentProjectId.value = projectId;
   }
 
   // Auto-save when data changes
   watch(
     [nodes, edges],
     () => {
-      saveToLocalStorage();
+      saveProject();
     },
     { deep: true }
   );
 
-  // Initialize by loading from localStorage
-  loadFromLocalStorage();
+  // Initialize by loading the last used project or default
+  const savedProjectId = localStorage.getItem('dev-flow-current-project');
+  if (savedProjectId) {
+    currentProjectId.value = savedProjectId;
+  }
+  loadProject();
 
   async function loadWorkflows() {
     loading.value = true;
@@ -257,8 +333,11 @@ export const useWorkflowStore = defineStore('workflow', () => {
     selectNode,
     exportWorkflow,
 
-    // LocalStorage
-    saveToLocalStorage,
-    loadFromLocalStorage,
+    // Project Management
+    saveProject,
+    loadProject,
+    getProjects,
+    setCurrentProjectId,
+    currentProjectId: readonly(currentProjectId),
   };
 });
