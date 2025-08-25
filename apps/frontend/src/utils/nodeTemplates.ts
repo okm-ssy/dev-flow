@@ -61,4 +61,14 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     inputs: [{ id: 'input', label: 'Input' }],
     outputs: [{ id: 'output', label: 'Output' }],
   },
+  other: {
+    label: 'その他 / Other',
+    icon: 'Package',
+    defaultConfig: {
+      description: '',
+      notes: '',
+    },
+    inputs: [{ id: 'input', label: 'Input' }],
+    outputs: [{ id: 'output', label: 'Output' }],
+  },
 };

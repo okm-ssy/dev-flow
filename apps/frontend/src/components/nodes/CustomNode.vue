@@ -87,6 +87,7 @@ const iconMap: Record<string, typeof FileText> = {
   script: Terminal,
   transform: Package,
   trigger: Zap,
+  other: Package,
 };
 
 function getIcon(type: string) {
