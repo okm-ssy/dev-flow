@@ -2,7 +2,7 @@ import type { NodeTemplate } from '../types';
 
 export const nodeTemplates: Record<string, NodeTemplate> = {
   input: {
-    label: 'Input',
+    label: '事前準備',
     icon: 'FileText',
     defaultConfig: {
       source: 'file',
@@ -11,7 +11,7 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     outputs: [{ id: 'output', label: 'Data' }],
   },
   process: {
-    label: 'Process',
+    label: '手作業',
     icon: 'Code',
     defaultConfig: {
       operation: 'transform',
@@ -20,7 +20,7 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     outputs: [{ id: 'output', label: 'Output' }],
   },
   condition: {
-    label: 'Condition',
+    label: '条件分岐',
     icon: 'GitBranch',
     defaultConfig: {
       condition: '',
@@ -32,7 +32,7 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     ],
   },
   database: {
-    label: 'Database',
+    label: 'SQL 実行',
     icon: 'Database',
     defaultConfig: {
       type: 'postgres',
@@ -41,16 +41,8 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     inputs: [{ id: 'query', label: 'Query' }],
     outputs: [{ id: 'result', label: 'Result' }],
   },
-  output: {
-    label: 'Output',
-    icon: 'Send',
-    defaultConfig: {
-      destination: 'console',
-    },
-    inputs: [{ id: 'data', label: 'Data' }],
-  },
   api: {
-    label: 'API Call',
+    label: 'API 実行',
     icon: 'Globe',
     defaultConfig: {
       method: 'GET',
@@ -60,7 +52,7 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     outputs: [{ id: 'response', label: 'Response' }],
   },
   script: {
-    label: 'Script',
+    label: 'CLI 実行',
     icon: 'Terminal',
     defaultConfig: {
       language: 'javascript',
@@ -68,23 +60,5 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     },
     inputs: [{ id: 'input', label: 'Input' }],
     outputs: [{ id: 'output', label: 'Output' }],
-  },
-  transform: {
-    label: 'Transform',
-    icon: 'Package',
-    defaultConfig: {
-      code: '// Transform function\nreturn data;',
-    },
-    inputs: [{ id: 'data', label: 'Data' }],
-    outputs: [{ id: 'transformed', label: 'Transformed' }],
-  },
-  trigger: {
-    label: 'Trigger',
-    icon: 'Zap',
-    defaultConfig: {
-      type: 'schedule',
-      schedule: '0 * * * *',
-    },
-    outputs: [{ id: 'trigger', label: 'Trigger' }],
   },
 };

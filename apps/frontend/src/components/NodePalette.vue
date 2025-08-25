@@ -7,7 +7,7 @@
         :key="type"
         @click="$emit('add-node', type)"
         class="w-full px-3 py-2 text-left text-sm bg-gray-700 rounded hover:bg-gray-600 transition-colors flex items-center space-x-2 border-2"
-        :style="{ borderColor: getNodeColor(type) }"
+        :style="{ borderColor: getBorderColor(type) }"
       >
         <component
           :is="getIcon(template.icon)"
@@ -33,7 +33,7 @@ import {
   Zap,
 } from 'lucide-vue-next';
 
-import { getNodeColor, getIconColor } from '../composables/useNodeColors';
+import { getBorderColor, getIconColor } from '../composables/useNodeColors';
 import { nodeTemplates } from '../utils/nodeTemplates';
 
 defineEmits<{
