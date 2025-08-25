@@ -140,73 +140,93 @@
   </div>
 
   <!-- Sidebar Settings Panel -->
-  <div v-else-if="isSidebar" class="p-4 bg-gray-800 text-sm">
-    <!-- Project Selection -->
-    <div class="mb-4">
-      <label class="block text-xs font-medium text-gray-400 mb-1">プロジェクト</label>
-      <select
-        v-model="currentProjectId"
-        @change="switchProject"
-        class="w-full px-2 py-1 text-xs border border-gray-600 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-      >
-        <option v-if="projectList.length === 0" :value="currentProjectId">
-          {{ currentProjectId }}
-        </option>
-        <option v-for="project in projectList" :key="project.id" :value="project.id">
-          {{ project.id }} ({{ project.nodeCount }}n {{ project.edgeCount }}e)
-        </option>
-      </select>
-    </div>
-
-    <!-- Create New Project Button -->
+  <div v-else-if="isSidebar" class="bg-gray-800 text-sm">
+    <!-- Collapsible Header -->
     <button
-      @click="createNewProject"
-      class="w-full mb-4 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+      @click="isCollapsed = !isCollapsed"
+      class="w-full flex items-center justify-between px-4 py-2 bg-gray-700 hover:bg-gray-600 transition-colors"
     >
-      新しいプロジェクト
+      <span class="text-xs font-medium text-gray-200">プロジェクト設定</span>
+      <span
+        class="transform transition-transform text-gray-400"
+        :class="{ 'rotate-180': !isCollapsed }"
+      >
+        ▼
+      </span>
     </button>
 
-    <!-- JSON Import/Export -->
-    <div class="mb-2">
-      <div class="flex items-center justify-between mb-1">
-        <label class="text-xs font-medium text-gray-400">JSON</label>
-        <div class="flex space-x-1">
-          <button
-            @click="exportToTextarea"
-            class="px-2 py-0.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+    <!-- Collapsible Content -->
+    <Collapsed :when="isCollapsed">
+      <div class="p-4">
+        <!-- Project Selection -->
+        <div class="mb-4">
+          <label class="block text-xs font-medium text-gray-400 mb-1">プロジェクト</label>
+          <select
+            v-model="currentProjectId"
+            @change="switchProject"
+            class="w-full px-2 py-1 text-xs border border-gray-600 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
-            ↓
-          </button>
-          <button
-            @click="importFromJson"
-            class="px-2 py-0.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-            :disabled="!jsonTextarea.trim()"
-          >
-            ↑
-          </button>
-          <button
-            @click="copyJsonToClipboard"
-            class="px-2 py-0.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors"
-          >
-            📋
-          </button>
+            <option v-if="projectList.length === 0" :value="currentProjectId">
+              {{ currentProjectId }}
+            </option>
+            <option v-for="project in projectList" :key="project.id" :value="project.id">
+              {{ project.id }} ({{ project.nodeCount }}n {{ project.edgeCount }}e)
+            </option>
+          </select>
+        </div>
+
+        <!-- Create New Project Button -->
+        <button
+          @click="createNewProject"
+          class="w-full mb-4 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+        >
+          新しいプロジェクト
+        </button>
+
+        <!-- JSON Import/Export -->
+        <div class="mb-2">
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-medium text-gray-400">JSON</label>
+            <div class="flex space-x-1">
+              <button
+                @click="exportToTextarea"
+                class="px-2 py-0.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                ↓
+              </button>
+              <button
+                @click="importFromJson"
+                class="px-2 py-0.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                :disabled="!jsonTextarea.trim()"
+              >
+                ↑
+              </button>
+              <button
+                @click="copyJsonToClipboard"
+                class="px-2 py-0.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors"
+              >
+                📋
+              </button>
+            </div>
+          </div>
+          <textarea
+            v-model="jsonTextarea"
+            class="w-full h-20 px-2 py-1 text-xs border border-gray-600 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none font-mono"
+            placeholder="JSON入出力"
+          />
+          <div v-if="importError" class="mt-1 text-red-400 text-xs">
+            {{ importError }}
+          </div>
         </div>
       </div>
-      <textarea
-        v-model="jsonTextarea"
-        class="w-full h-20 px-2 py-1 text-xs border border-gray-600 bg-gray-700 text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none font-mono"
-        placeholder="JSON入出力"
-      />
-      <div v-if="importError" class="mt-1 text-red-400 text-xs">
-        {{ importError }}
-      </div>
-    </div>
+    </Collapsed>
   </div>
 </template>
 
 <script setup lang="ts">
 import { X } from 'lucide-vue-next';
 import { ref, computed, watch, onMounted } from 'vue';
+import { Collapsed } from 'vue-collapsed';
 
 import { useWorkflowStore } from '../stores/workflow';
 
@@ -226,6 +246,7 @@ const newProjectId = ref('');
 const importJson = ref('');
 const importError = ref('');
 const jsonTextarea = ref('');
+const isCollapsed = ref(false);
 
 // Export JSON (current workflow state)
 const exportJson = computed(() => {
