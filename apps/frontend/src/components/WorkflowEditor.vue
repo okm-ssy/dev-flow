@@ -23,6 +23,7 @@
         @connect="onConnect"
         @node-click="handleNodeClick"
         @node-double-click="handleNodeDoubleClick"
+        @edge-click="handleEdgeClick"
         @pane-click="handlePaneClick"
         @nodes-delete="onNodesDelete"
         @edges-delete="onEdgesDelete"
@@ -95,6 +96,7 @@ import { onMounted } from 'vue';
 
 import { useEdgeDepth } from '../composables/useEdgeDepth';
 import { useWorkflowStore } from '../stores/workflow';
+import { UI_MESSAGES } from '../utils/constants';
 import { nodeTemplates } from '../utils/nodeTemplates';
 
 import CustomEdge from './CustomEdge.vue';
@@ -108,16 +110,7 @@ import CustomNode from './nodes/CustomNode.vue';
 const workflowStore = useWorkflowStore();
 const { nodes, edges, currentWorkflow, error, selectedNode } = storeToRefs(workflowStore);
 
-const {
-  onConnect,
-  addNode,
-  updateNode,
-  selectNode,
-  loadWorkflows,
-  createWorkflow,
-  removeNodes,
-  removeEdges,
-} = workflowStore;
+const { onConnect, addNode, updateNode, selectNode, removeNodes, removeEdges } = workflowStore;
 
 const { project } = useVueFlow();
 const { edgeDepths } = useEdgeDepth(nodes.value, edges.value);
@@ -138,15 +131,8 @@ function getEdgeColor(depth: number) {
 }
 
 onMounted(async () => {
-  await loadWorkflows();
-
-  // Create a default workflow if none exists
-  if (workflowStore.workflows.length === 0) {
-    await createWorkflow('My First Workflow', 'A sample workflow to get started');
-  } else if (workflowStore.workflows[0]?.id) {
-    // Load the first workflow
-    await workflowStore.loadWorkflow(workflowStore.workflows[0].id);
-  }
+  // Load the current project data (nodes and edges are already loaded by workflow store)
+  // The workflow store automatically loads the project on initialization
 });
 
 function handleAddNode(type: string) {
@@ -203,6 +189,12 @@ function handleNodeDoubleClick(event: { node: Node }) {
 
 function handlePaneClick() {
   selectNode(null);
+}
+
+function handleEdgeClick(event: { edge: Edge }) {
+  if (confirm(UI_MESSAGES.CONFIRM_DELETE_EDGE)) {
+    workflowStore.deleteEdge(event.edge.id);
+  }
 }
 
 function handleNodeUpdate(nodeId: string, data: unknown) {

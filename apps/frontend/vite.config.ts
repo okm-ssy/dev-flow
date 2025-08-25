@@ -14,6 +14,24 @@ export default defineConfig({
       }
     }
   },
+  optimizeDeps: {
+    include: [
+      'monaco-editor/esm/vs/language/typescript/ts.worker',
+      'monaco-editor/esm/vs/editor/editor.worker'
+    ]
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'monaco-editor': ['monaco-editor']
+        }
+      }
+    }
+  },
+  define: {
+    'process.env': {}
+  },
   test: {
     globals: true,
     environment: 'jsdom',

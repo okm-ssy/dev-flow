@@ -50,6 +50,7 @@
               @input="updateConfig(key.toString(), ($event.target as HTMLTextAreaElement).value)"
               rows="3"
               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+              resize="vertical"
             />
           </div>
         </div>
