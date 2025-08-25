@@ -1,12 +1,6 @@
 <template>
   <g>
-    <path
-      :id="id"
-      :style="edgeStyle"
-      class="vue-flow__edge-path animated-edge"
-      :d="path"
-      :marker-end="`url(#${markerId})`"
-    />
+    <path :id="id" :style="edgeStyle" class="vue-flow__edge-path animated-edge" :d="path" />
     <!-- Animated dots along the path -->
     <circle v-if="animated !== false" r="3" :fill="edgeColor" class="edge-dot">
       <animateMotion :dur="`${animationDuration}s`" repeatCount="indefinite" :path="path" />
@@ -75,6 +69,4 @@ const animationDuration = computed(() => {
   );
   return Math.max(2, length / 100); // Minimum 2 seconds, scale with length
 });
-
-const markerId = computed(() => `arrow-${props.id}`);
 </script>
