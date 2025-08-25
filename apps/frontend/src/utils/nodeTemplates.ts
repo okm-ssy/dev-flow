@@ -2,17 +2,6 @@ import type { NodeTemplate } from '../types';
 
 // Color-grouped node templates (similar colors are placed together)
 export const nodeTemplates: Record<string, NodeTemplate> = {
-  // White/Gray group
-  process: {
-    label: '手作業 / Process',
-    icon: 'Code',
-    defaultConfig: {
-      operation: 'transform',
-    },
-    inputs: [{ id: 'input', label: 'Input' }],
-    outputs: [{ id: 'output', label: 'Output' }],
-  },
-
   // Green group
   input: {
     label: '事前準備 / Input',
@@ -68,6 +57,17 @@ export const nodeTemplates: Record<string, NodeTemplate> = {
     },
     inputs: [{ id: 'params', label: 'Parameters' }],
     outputs: [{ id: 'response', label: 'Response' }],
+  },
+
+  // White group (between API and Other)
+  process: {
+    label: '手作業 / Process',
+    icon: 'Code',
+    defaultConfig: {
+      operation: 'transform',
+    },
+    inputs: [{ id: 'input', label: 'Input' }],
+    outputs: [{ id: 'output', label: 'Output' }],
   },
 
   // Pink group
