@@ -151,14 +151,30 @@ export const useWorkflowStore = defineStore('workflow', () => {
   }
 
   // Auto-save when data changes (only when enabled)
+  // Use debounce to avoid excessive saves
+  let saveTimeout: NodeJS.Timeout | null = null;
+
   watch(
     [nodes, edges],
     () => {
       if (autoSaveEnabled.value) {
-        saveProject();
+        // Clear existing timeout
+        if (saveTimeout) {
+          clearTimeout(saveTimeout);
+        }
+
+        // Set new timeout for debounced save
+        saveTimeout = setTimeout(() => {
+          saveProject();
+        }, 1000); // Save after 1 second of inactivity
       }
     },
-    { deep: true }
+    {
+      deep: true,
+      // Ignore certain properties that shouldn't trigger saves
+      // Filter out selection, hover, and other transient states
+      flush: 'post',
+    }
   );
 
   // Initialize by loading the last used project or default
