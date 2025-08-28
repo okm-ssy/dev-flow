@@ -1,12 +1,12 @@
-// 共通のノードカラー定義
+// 共通のノードカラー定義（少し暗くしたパステルカラー）
 export const pastelColors: Record<string, string> = {
-  input: '#D1FAE5', // pastel green
-  process: '#FFFFFF', // pure white
-  condition: '#FEF3C7', // pastel yellow
-  database: '#EDE9FE', // pastel purple
-  api: '#E0E7FF', // pastel indigo
-  script: '#FED7AA', // pastel orange
-  other: '#FCE7F3', // pastel pink
+  input: '#A7F3D0', // darker pastel green
+  process: '#F3F4F6', // light gray instead of pure white
+  condition: '#FDE68A', // darker pastel yellow
+  database: '#DDD6FE', // darker pastel purple
+  api: '#C7D2FE', // darker pastel indigo
+  script: '#FED7AA', // keep pastel orange as is
+  other: '#FBCFE8', // darker pastel pink
 };
 
 // アイコンの色（もう少し濃いバージョン）
@@ -20,15 +20,15 @@ export const iconColors: Record<string, string> = {
   other: '#EC4899', // pink-500
 };
 
-// ボーダー用の濃い色（さらに濃いバージョン）
+// ボーダー用の濃い色（より濃くしたバージョン）
 export const borderColors: Record<string, string> = {
-  input: '#059669', // emerald-600
-  process: '#9CA3AF', // gray-400 (lighter but visible border)
-  condition: '#D97706', // amber-600
-  database: '#7C3AED', // violet-600
-  api: '#4F46E5', // indigo-600
-  script: '#EA580C', // orange-600
-  other: '#DB2777', // pink-600
+  input: '#047857', // emerald-700 (darker)
+  process: '#6B7280', // gray-500 (darker)
+  condition: '#B45309', // amber-700 (darker)
+  database: '#6D28D9', // violet-700 (darker)
+  api: '#4338CA', // indigo-700 (darker)
+  script: '#C2410C', // orange-700 (darker)
+  other: '#BE185D', // pink-700 (darker)
 };
 
 export function getNodeColor(type: string): string {
