@@ -11,17 +11,13 @@
       <!-- Header -->
       <div class="px-6 py-4 border-b border-gray-600 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-          <div
-            class="p-2 rounded-lg border-2"
-            :style="{
-              borderColor: getNodeColor(node?.data.type || ''),
-              backgroundColor: '#ffffff',
-            }"
-          >
-            <component :is="getIcon(node?.data.type || '')" class="w-6 h-6 text-gray-600" />
-          </div>
+          <component
+            :is="getIcon(node?.data.type || '')"
+            class="w-6 h-6"
+            :style="{ color: getIconColor(node?.data.type || '') }"
+          />
           <h2 class="text-xl font-semibold text-gray-100">
-            {{ node?.data.type || 'Node' }} - {{ node?.data.label || 'Untitled' }}
+            {{ getNodeTypeLabel(node?.data.type || '') }} - {{ node?.data.label || 'Untitled' }}
           </h2>
         </div>
         <button @click="closeDialog" class="p-2 hover:bg-gray-700 rounded-full transition-colors">
@@ -153,6 +149,9 @@ import { X } from 'lucide-vue-next';
 import { FileText, Code, GitBranch, Database, Globe, Terminal, Package } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
+import { getIconColor } from '../composables/useNodeColors';
+import { nodeTemplates } from '../utils/nodeTemplates';
+
 import MonacoEditor from './MonacoEditor.vue';
 
 const props = defineProps<{
@@ -184,19 +183,8 @@ function getIcon(type: string) {
   return iconMap[type] || FileText;
 }
 
-// パステルカラーの定義（CustomNode.vueと同じ）
-const pastelColors: Record<string, string> = {
-  input: '#D1FAE5', // pastel green
-  process: '#F3F4F6', // pastel gray
-  condition: '#FEF3C7', // pastel yellow
-  database: '#EDE9FE', // pastel purple
-  api: '#E0E7FF', // pastel indigo
-  script: '#FED7AA', // pastel orange
-  other: '#FCE7F3', // pastel pink (fallback)
-};
-
-function getNodeColor(type: string) {
-  return pastelColors[type] || pastelColors.process;
+function getNodeTypeLabel(type: string): string {
+  return nodeTemplates[type]?.label || type;
 }
 
 function formatLabel(key: string): string {
