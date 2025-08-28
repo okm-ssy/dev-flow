@@ -1,6 +1,6 @@
 import type { Node, Edge, Connection } from '@vue-flow/core';
 import { defineStore } from 'pinia';
-import { ref, computed, readonly } from 'vue';
+import { ref, computed, readonly, watch } from 'vue';
 
 import { api } from '../services/api';
 import type { Workflow, WorkflowNode, WorkflowData } from '../types';
@@ -16,6 +16,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const selectedNode = ref<Node | null>(null);
   const currentProjectId = ref<string>('default');
   const autoSaveEnabled = ref(true);
+  let saveTimeout: NodeJS.Timeout | null = null;
 
   const nodeCount = computed(() => nodes.value.length);
   const edgeCount = computed(() => edges.value.length);
@@ -153,8 +154,26 @@ export const useWorkflowStore = defineStore('workflow', () => {
     currentProjectId.value = projectId;
   }
 
-  // File system watcher will handle automatic saves
-  // Removed the reactive watcher to avoid duplicate saves
+  // Auto-save when nodes or edges change
+  watch(
+    [nodes, edges],
+    () => {
+      if (autoSaveEnabled.value) {
+        // Clear previous timeout to debounce saves
+        if (saveTimeout) {
+          clearTimeout(saveTimeout);
+        }
+
+        // Debounce saves to avoid excessive API calls during rapid changes
+        saveTimeout = setTimeout(() => {
+          saveProject().catch((err) => {
+            console.error('Auto-save failed:', err);
+          });
+        }, 500);
+      }
+    },
+    { deep: true }
+  );
 
   // Initialize by loading the last used project or default
   const savedProjectId = localStorage.getItem('dev-flow-current-project');
