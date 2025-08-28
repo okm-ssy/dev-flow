@@ -37,7 +37,6 @@
             type="text"
             class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Enter node label..."
-            @input="handleLabelChange"
           />
         </div>
 
@@ -81,7 +80,6 @@
                   }"
                   language="javascript"
                   class="h-64 border border-gray-600 rounded-md"
-                  @update:value="handleConfigChange(key)"
                 />
               </div>
 
@@ -92,7 +90,6 @@
                 type="text"
                 class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 :placeholder="`Enter ${formatLabel(key).toLowerCase()}...`"
-                @input="handleConfigChange(key)"
               />
             </div>
           </div>
@@ -221,36 +218,6 @@ function saveChanges() {
 
   emit('update', props.node.id, updatedData);
   emit('close');
-}
-
-// Auto-save functions
-let saveDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-const SAVE_DEBOUNCE_MS = 500;
-
-function debouncedSave() {
-  if (!props.node) return;
-
-  if (saveDebounceTimer) {
-    clearTimeout(saveDebounceTimer);
-  }
-
-  saveDebounceTimer = setTimeout(() => {
-    const updatedData = {
-      ...props.node.data,
-      label: editData.value.label,
-      config: editData.value.config,
-    };
-
-    emit('update', props.node.id, updatedData);
-  }, SAVE_DEBOUNCE_MS);
-}
-
-function handleLabelChange() {
-  debouncedSave();
-}
-
-function handleConfigChange(_key: string) {
-  debouncedSave();
 }
 
 // Watch for node changes and update edit data
