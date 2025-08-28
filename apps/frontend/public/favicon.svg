@@ -2,13 +2,13 @@
   <!-- White background circle -->
   <circle cx="16" cy="16" r="15" fill="white" />
   
-  <!-- Orange puzzle pieces -->
-  <g fill="#ff6b35">
+  <!-- Two simple puzzle pieces -->
+  <g>
     <!-- Left puzzle piece -->
-    <path d="M8 12h5v2.5a1.5 1.5 0 003 0V12h2v3h-2.5a1.5 1.5 0 000 3H18v3h-5v-2.5a1.5 1.5 0 00-3 0V21H8v-9z" />
+    <path fill="#ff6b35" d="M7 10h7v3c0 1.1.9 2 2 2s2-.9 2-2v-3h1v12h-7v-3c0-1.1-.9-2-2-2s-2 .9-2 2v3H7V10z" />
     
-    <!-- Right puzzle piece (connected) -->
-    <path d="M18 12h2v2.5a1.5 1.5 0 003 0V12h2v9h-5v-2.5a1.5 1.5 0 00-3 0V21h-2v-3h2.5a1.5 1.5 0 000-3H18v-3z" opacity="0.85" />
+    <!-- Right puzzle piece (fits into left) -->
+    <path fill="#ff8c5a" d="M19 10h1v3c0 1.1.9 2 2 2s2-.9 2-2v-3h1v12h-6V10z" />
   </g>
   
   <!-- Border for better visibility -->
