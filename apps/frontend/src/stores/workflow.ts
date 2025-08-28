@@ -30,13 +30,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
       currentWorkflow: currentWorkflow.value,
       timestamp: new Date().toISOString(),
     };
-    console.log('💾 Saving project:', {
-      projectId: id,
-      nodeCount: nodes.value.length,
-      edgeCount: edges.value.length,
-      currentWorkflow: currentWorkflow.value,
-    });
-    console.log('💾 Nodes being saved:', JSON.stringify(nodes.value, null, 2));
 
     try {
       const response = await fetch('/api/projects', {
@@ -60,7 +53,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
   // Load project data from local file system via API
   async function loadProject(projectId?: string) {
     const id = projectId || currentProjectId.value;
-    console.log('🔄 Loading project:', id);
 
     try {
       const response = await fetch(`/api/projects/${id}`);
@@ -70,13 +62,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
         // APIレスポンスは { success: true, data: { data: {...} } } の形式
         // project-storageが { data: {...} } を返すため
         const projectData = result.data?.data || result.data || result;
-        console.log('📦 Loaded data from API:', {
-          projectId: id,
-          nodeCount: projectData.nodes?.length || 0,
-          edgeCount: projectData.edges?.length || 0,
-          currentWorkflow: projectData.currentWorkflow,
-        });
-        console.log('📦 Full data:', JSON.stringify(projectData, null, 2));
         nodes.value = projectData.nodes || [];
         edges.value = projectData.edges || [];
         currentWorkflow.value = projectData.currentWorkflow || null;
@@ -98,13 +83,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     if (saved) {
       try {
         const data = JSON.parse(saved);
-        console.log('💾 Loaded data from localStorage:', {
-          projectId: id,
-          nodeCount: data.nodes?.length || 0,
-          edgeCount: data.edges?.length || 0,
-          currentWorkflow: data.currentWorkflow,
-          data: data,
-        });
         nodes.value = data.nodes || [];
         edges.value = data.edges || [];
         currentWorkflow.value = data.currentWorkflow || null;
@@ -123,7 +101,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
       return await loadProject('default');
     }
 
-    console.log('⚠️ No data found for project:', id);
     return false;
   }
 
@@ -186,7 +163,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     () => {
       // Skip the initial load to prevent overwriting data
       if (isInitialLoad) {
-        console.log('⏭️ Skipping auto-save during initial load');
         return;
       }
 
@@ -212,19 +188,16 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   // Initialize by loading the last used project or default
   const savedProjectId = localStorage.getItem('dev-flow-current-project');
-  console.log('🚀 Initializing workflow store, saved project ID:', savedProjectId);
   if (savedProjectId) {
     currentProjectId.value = savedProjectId;
   }
 
   // Load project with error handling for startup
-  console.log('📂 Loading project on startup...');
   loadProject()
     .then(() => {
       // Enable auto-save after initial load is complete
       setTimeout(() => {
         isInitialLoad = false;
-        console.log('✅ Initial load complete, auto-save enabled');
       }, 100);
     })
     .catch((err) => {
@@ -234,7 +207,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
       loadProject('default').then(() => {
         setTimeout(() => {
           isInitialLoad = false;
-          console.log('✅ Initial load complete, auto-save enabled');
         }, 100);
       });
     });
