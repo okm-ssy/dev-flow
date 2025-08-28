@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { EventEmitter } from 'events';
 
 interface ProjectData {
   projectId: string;
@@ -16,11 +17,13 @@ interface ProjectSummary {
   lastModified: string;
 }
 
-class ProjectStorage {
+class ProjectStorage extends EventEmitter {
   private dataDir: string;
   private static instance: ProjectStorage | null = null;
+  private watchers: Map<string, fs.FSWatcher> = new Map();
 
   private constructor() {
+    super();
     // Use data directory at project root level
     this.dataDir = path.join(process.cwd(), '../../data/projects');
   }
@@ -105,6 +108,9 @@ class ProjectStorage {
       
       fs.writeFileSync(filePath, JSON.stringify(projectData, null, 2));
       console.log(`💾 Project saved: ${projectId}`);
+      
+      // Start watching the file if not already watching
+      this.startWatching(projectId);
     } catch (err) {
       console.error(`Failed to save project ${projectId}:`, err);
       throw err;
@@ -121,10 +127,59 @@ class ProjectStorage {
     try {
       fs.unlinkSync(filePath);
       console.log(`🗑️ Project deleted: ${projectId}`);
+      
+      // Stop watching the file
+      this.stopWatching(projectId);
+      
       return true;
     } catch (err) {
       console.error(`Failed to delete project ${projectId}:`, err);
       return false;
+    }
+  }
+
+  private startWatching(projectId: string): void {
+    if (this.watchers.has(projectId)) {
+      return; // Already watching
+    }
+
+    const filePath = this.getProjectPath(projectId);
+    
+    try {
+      const watcher = fs.watchFile(filePath, { interval: 1000 }, () => {
+        // File was changed externally, emit event for webhook
+        console.log(`📁 File changed: ${projectId}`);
+        this.emit('projectChanged', projectId);
+      });
+
+      this.watchers.set(projectId, watcher as fs.FSWatcher);
+      console.log(`👁️ Started watching: ${projectId}`);
+    } catch (err) {
+      console.error(`Failed to start watching ${projectId}:`, err);
+    }
+  }
+
+  private stopWatching(projectId: string): void {
+    const watcher = this.watchers.get(projectId);
+    if (watcher) {
+      fs.unwatchFile(this.getProjectPath(projectId));
+      this.watchers.delete(projectId);
+      console.log(`👁️ Stopped watching: ${projectId}`);
+    }
+  }
+
+  public startWatchingAll(): void {
+    // Watch all existing project files
+    try {
+      const files = fs.readdirSync(this.dataDir);
+      files.forEach(file => {
+        if (file.endsWith('.json')) {
+          const projectId = file.replace('.json', '');
+          this.startWatching(projectId);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to start watching all projects:', err);
     }
   }
 }

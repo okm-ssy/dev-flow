@@ -1,6 +1,6 @@
 import type { Node, Edge, Connection } from '@vue-flow/core';
 import { defineStore } from 'pinia';
-import { ref, computed, watch, readonly } from 'vue';
+import { ref, computed, readonly } from 'vue';
 
 import { api } from '../services/api';
 import type { Workflow, WorkflowNode, WorkflowData } from '../types';
@@ -153,38 +153,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
     currentProjectId.value = projectId;
   }
 
-  // Auto-save when data changes (only when enabled)
-  // Use debounce to avoid excessive saves
-  let saveTimeout: NodeJS.Timeout | null = null;
-  let isInitialLoad = true;
-
-  watch(
-    [nodes, edges],
-    () => {
-      // Skip the initial load to prevent overwriting data
-      if (isInitialLoad) {
-        return;
-      }
-
-      if (autoSaveEnabled.value) {
-        // Clear existing timeout
-        if (saveTimeout) {
-          clearTimeout(saveTimeout);
-        }
-
-        // Set new timeout for debounced save
-        saveTimeout = setTimeout(() => {
-          saveProject();
-        }, 1000); // Save after 1 second of inactivity
-      }
-    },
-    {
-      deep: true,
-      // Ignore certain properties that shouldn't trigger saves
-      // Filter out selection, hover, and other transient states
-      flush: 'post',
-    }
-  );
+  // File system watcher will handle automatic saves
+  // Removed the reactive watcher to avoid duplicate saves
 
   // Initialize by loading the last used project or default
   const savedProjectId = localStorage.getItem('dev-flow-current-project');
@@ -193,23 +163,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
   }
 
   // Load project with error handling for startup
-  loadProject()
-    .then(() => {
-      // Enable auto-save after initial load is complete
-      setTimeout(() => {
-        isInitialLoad = false;
-      }, 100);
-    })
-    .catch((err) => {
-      console.warn('Failed to load project on startup, resetting to default:', err);
-      currentProjectId.value = 'default';
-      localStorage.setItem('dev-flow-current-project', 'default');
-      loadProject('default').then(() => {
-        setTimeout(() => {
-          isInitialLoad = false;
-        }, 100);
-      });
-    });
+  loadProject().catch((err) => {
+    console.warn('Failed to load project on startup, resetting to default:', err);
+    currentProjectId.value = 'default';
+    localStorage.setItem('dev-flow-current-project', 'default');
+    loadProject('default');
+  });
 
   async function loadWorkflows() {
     loading.value = true;
@@ -326,8 +285,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   function updateNode(id: string, data: Partial<Node>) {
     nodes.value = nodes.value.map((node) => (node.id === id ? { ...node, ...data } : node));
-    // 即座に保存（ノード詳細変更時）
-    saveProject();
   }
 
   function deleteNode(id: string) {

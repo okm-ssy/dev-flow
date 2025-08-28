@@ -15,6 +15,15 @@ async function startServer() {
     // Initialize storages
     fileStorage.initialize();
     projectStorage.initialize();
+    
+    // Start file watching for automatic webhook triggers
+    projectStorage.startWatchingAll();
+    
+    // Set up webhook listener (optional - for external integrations)
+    projectStorage.on('projectChanged', (projectId: string) => {
+      console.log(`🔔 Webhook trigger: Project ${projectId} changed`);
+      // Here you could send webhook notifications to external services
+    });
 
     // Middleware
     app.use(cors({

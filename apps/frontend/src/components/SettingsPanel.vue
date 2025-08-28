@@ -167,10 +167,8 @@ async function importFromJson() {
       currentProjectId.value = data.projectId;
     }
 
-    // Save imported data with a slight delay to ensure state is updated
-    setTimeout(async () => {
-      await workflowStore.saveProject();
-    }, 100);
+    // Save imported data immediately after import
+    await workflowStore.saveProject();
 
     alert(UI_MESSAGES.JSON_IMPORT_SUCCESS);
 

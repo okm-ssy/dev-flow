@@ -111,8 +111,7 @@ import CustomNode from './nodes/CustomNode.vue';
 const workflowStore = useWorkflowStore();
 const { nodes, edges, currentWorkflow, error, selectedNode } = storeToRefs(workflowStore);
 
-const { onConnect, addNode, updateNode, selectNode, removeNodes, removeEdges, saveProject } =
-  workflowStore;
+const { onConnect, addNode, updateNode, selectNode, removeNodes, removeEdges } = workflowStore;
 
 const { project } = useVueFlow();
 const { edgeDepths } = useEdgeDepth(nodes.value, edges.value);
@@ -194,8 +193,7 @@ function handlePaneClick() {
 }
 
 function handleNodeDragStop() {
-  // ノードのドラッグが終了したら即座に保存
-  saveProject();
+  // ファイル保存は自動的に行われるため、明示的なsaveProject()は不要
 }
 
 function handleEdgeClick(event: { edge: Edge }) {
