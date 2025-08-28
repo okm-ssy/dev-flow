@@ -17,22 +17,22 @@
 
     <!-- Handles -->
     <Handle
-      v-for="input in data.inputs"
+      v-for="(input, index) in data.inputs"
       :key="`input-${input.id}`"
       type="target"
       :id="input.id"
       :position="Position.Left"
-      :style="{ top: `${30 + data.inputs.indexOf(input) * 25}px` }"
+      :style="{ top: `${30 + index * 25}px` }"
       class="w-3 h-3"
     />
 
     <Handle
-      v-for="output in data.outputs"
+      v-for="(output, index) in data.outputs"
       :key="`output-${output.id}`"
       type="source"
       :id="output.id"
       :position="Position.Right"
-      :style="{ top: `${30 + data.outputs.indexOf(output) * 25}px` }"
+      :style="{ top: `${30 + index * 25}px` }"
       class="w-3 h-3"
     />
 
