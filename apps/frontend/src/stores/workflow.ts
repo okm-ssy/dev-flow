@@ -30,6 +30,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
       currentWorkflow: currentWorkflow.value,
       timestamp: new Date().toISOString(),
     };
+    console.log('💾 Saving project:', {
+      projectId: id,
+      nodeCount: nodes.value.length,
+      edgeCount: edges.value.length,
+      currentWorkflow: currentWorkflow.value,
+    });
 
     try {
       const response = await fetch('/api/projects', {
@@ -53,12 +59,20 @@ export const useWorkflowStore = defineStore('workflow', () => {
   // Load project data from local file system via API
   async function loadProject(projectId?: string) {
     const id = projectId || currentProjectId.value;
+    console.log('🔄 Loading project:', id);
 
     try {
       const response = await fetch(`/api/projects/${id}`);
 
       if (response.ok) {
         const data = await response.json();
+        console.log('📦 Loaded data from API:', {
+          projectId: id,
+          nodeCount: data.nodes?.length || 0,
+          edgeCount: data.edges?.length || 0,
+          currentWorkflow: data.currentWorkflow,
+          data: data,
+        });
         nodes.value = data.nodes || [];
         edges.value = data.edges || [];
         currentWorkflow.value = data.currentWorkflow || null;
@@ -80,6 +94,13 @@ export const useWorkflowStore = defineStore('workflow', () => {
     if (saved) {
       try {
         const data = JSON.parse(saved);
+        console.log('💾 Loaded data from localStorage:', {
+          projectId: id,
+          nodeCount: data.nodes?.length || 0,
+          edgeCount: data.edges?.length || 0,
+          currentWorkflow: data.currentWorkflow,
+          data: data,
+        });
         nodes.value = data.nodes || [];
         edges.value = data.edges || [];
         currentWorkflow.value = data.currentWorkflow || null;
@@ -98,6 +119,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
       return await loadProject('default');
     }
 
+    console.log('⚠️ No data found for project:', id);
     return false;
   }
 
@@ -179,11 +201,13 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   // Initialize by loading the last used project or default
   const savedProjectId = localStorage.getItem('dev-flow-current-project');
+  console.log('🚀 Initializing workflow store, saved project ID:', savedProjectId);
   if (savedProjectId) {
     currentProjectId.value = savedProjectId;
   }
 
   // Load project with error handling for startup
+  console.log('📂 Loading project on startup...');
   loadProject().catch((err) => {
     console.warn('Failed to load project on startup, resetting to default:', err);
     currentProjectId.value = 'default';
