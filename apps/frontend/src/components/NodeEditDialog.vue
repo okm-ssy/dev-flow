@@ -20,7 +20,9 @@
           >
             <component :is="getIcon(node?.data.type || '')" class="w-6 h-6 text-gray-600" />
           </div>
-          <h2 class="text-xl font-semibold text-gray-100">Edit {{ node?.data.label || 'Node' }}</h2>
+          <h2 class="text-xl font-semibold text-gray-100">
+            {{ node?.data.type || 'Node' }} - {{ node?.data.label || 'Untitled' }}
+          </h2>
         </div>
         <button @click="closeDialog" class="p-2 hover:bg-gray-700 rounded-full transition-colors">
           <X class="w-5 h-5 text-gray-400" />
@@ -29,26 +31,15 @@
 
       <!-- Content -->
       <div class="px-6 py-4 space-y-6">
-        <!-- Node Label -->
+        <!-- タイトル -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2"> Node Label </label>
+          <label class="block text-sm font-medium text-gray-300 mb-2"> タイトル </label>
           <input
             v-model="editData.label"
             type="text"
             class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Enter node label..."
+            placeholder="タイトルを入力..."
           />
-        </div>
-
-        <!-- Node Type (Read-only) -->
-        <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2"> Node Type </label>
-          <div
-            class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-300 flex items-center space-x-2"
-          >
-            <component :is="getIcon(node?.data.type || '')" class="w-4 h-4" />
-            <span class="capitalize">{{ node?.data.type }}</span>
-          </div>
         </div>
 
         <!-- Node Configuration -->
@@ -56,41 +47,53 @@
           <h3 class="text-lg font-medium text-gray-200 mb-3">Configuration</h3>
           <div class="space-y-4">
             <div v-for="(value, key) in editData.config" :key="key">
-              <label class="block text-sm font-medium text-gray-300 mb-1">
-                {{ formatLabel(key) }}
-              </label>
+              <!-- pathフィールドをスキップ (廃止) -->
+              <template v-if="key !== 'path'">
+                <label class="block text-sm font-medium text-gray-300 mb-1">
+                  {{ formatLabel(key) }}
+                </label>
 
-              <!-- Code editor for script/transform nodes -->
-              <div
-                v-if="
-                  key === 'code' &&
-                  (node?.data.type === 'script' || node?.data.type === 'transform')
-                "
-              >
-                <MonacoEditor
-                  v-model:value="editData.config[key]"
-                  :options="{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineNumbers: 'on',
-                    roundedSelection: false,
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                    theme: 'vs-dark',
-                  }"
-                  language="javascript"
-                  class="h-64 border border-gray-600 rounded-md"
+                <!-- Code editor for script/transform nodes -->
+                <div
+                  v-if="
+                    key === 'code' &&
+                    (node?.data.type === 'script' || node?.data.type === 'transform')
+                  "
+                >
+                  <MonacoEditor
+                    v-model:value="editData.config[key]"
+                    :options="{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      lineNumbers: 'on',
+                      roundedSelection: false,
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                      theme: 'vs-dark',
+                    }"
+                    language="javascript"
+                    class="h-64 border border-gray-600 rounded-md"
+                  />
+                </div>
+
+                <!-- Textarea for source field (準備内容) -->
+                <textarea
+                  v-else-if="key === 'source'"
+                  v-model="editData.config[key]"
+                  rows="3"
+                  class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
+                  :placeholder="`${formatLabel(key)}を入力...`"
                 />
-              </div>
 
-              <!-- Regular input for other fields -->
-              <input
-                v-else
-                v-model="editData.config[key]"
-                type="text"
-                class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                :placeholder="`Enter ${formatLabel(key).toLowerCase()}...`"
-              />
+                <!-- Regular input for other fields -->
+                <input
+                  v-else
+                  v-model="editData.config[key]"
+                  type="text"
+                  class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  :placeholder="`${formatLabel(key)}を入力...`"
+                />
+              </template>
             </div>
           </div>
         </div>
@@ -197,10 +200,29 @@ function getNodeColor(type: string) {
 }
 
 function formatLabel(key: string): string {
-  return key
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, (str) => str.toUpperCase())
-    .trim();
+  // 特定のキーに対する日本語ラベル
+  const labelMap: Record<string, string> = {
+    source: '準備内容',
+    path: 'Path', // 廃止予定
+    condition: '条件',
+    language: '言語',
+    code: 'コード',
+    type: 'タイプ',
+    query: 'クエリ',
+    method: 'メソッド',
+    url: 'URL',
+    operation: '操作',
+    description: '説明',
+    notes: 'メモ',
+  };
+
+  return (
+    labelMap[key] ||
+    key
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim()
+  );
 }
 
 function closeDialog() {
