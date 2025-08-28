@@ -36,6 +36,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
       edgeCount: edges.value.length,
       currentWorkflow: currentWorkflow.value,
     });
+    console.log('💾 Nodes being saved:', JSON.stringify(nodes.value, null, 2));
 
     try {
       const response = await fetch('/api/projects', {
@@ -65,17 +66,20 @@ export const useWorkflowStore = defineStore('workflow', () => {
       const response = await fetch(`/api/projects/${id}`);
 
       if (response.ok) {
-        const data = await response.json();
+        const result = await response.json();
+        // APIレスポンスは { success: true, data: { data: {...} } } の形式
+        // project-storageが { data: {...} } を返すため
+        const projectData = result.data?.data || result.data || result;
         console.log('📦 Loaded data from API:', {
           projectId: id,
-          nodeCount: data.nodes?.length || 0,
-          edgeCount: data.edges?.length || 0,
-          currentWorkflow: data.currentWorkflow,
-          data: data,
+          nodeCount: projectData.nodes?.length || 0,
+          edgeCount: projectData.edges?.length || 0,
+          currentWorkflow: projectData.currentWorkflow,
         });
-        nodes.value = data.nodes || [];
-        edges.value = data.edges || [];
-        currentWorkflow.value = data.currentWorkflow || null;
+        console.log('📦 Full data:', JSON.stringify(projectData, null, 2));
+        nodes.value = projectData.nodes || [];
+        edges.value = projectData.edges || [];
+        currentWorkflow.value = projectData.currentWorkflow || null;
         currentProjectId.value = id;
         return true;
       } else if (response.status === 404 && id !== 'default') {
@@ -175,10 +179,17 @@ export const useWorkflowStore = defineStore('workflow', () => {
   // Auto-save when data changes (only when enabled)
   // Use debounce to avoid excessive saves
   let saveTimeout: NodeJS.Timeout | null = null;
+  let isInitialLoad = true;
 
   watch(
     [nodes, edges],
     () => {
+      // Skip the initial load to prevent overwriting data
+      if (isInitialLoad) {
+        console.log('⏭️ Skipping auto-save during initial load');
+        return;
+      }
+
       if (autoSaveEnabled.value) {
         // Clear existing timeout
         if (saveTimeout) {
@@ -208,12 +219,25 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   // Load project with error handling for startup
   console.log('📂 Loading project on startup...');
-  loadProject().catch((err) => {
-    console.warn('Failed to load project on startup, resetting to default:', err);
-    currentProjectId.value = 'default';
-    localStorage.setItem('dev-flow-current-project', 'default');
-    loadProject('default');
-  });
+  loadProject()
+    .then(() => {
+      // Enable auto-save after initial load is complete
+      setTimeout(() => {
+        isInitialLoad = false;
+        console.log('✅ Initial load complete, auto-save enabled');
+      }, 100);
+    })
+    .catch((err) => {
+      console.warn('Failed to load project on startup, resetting to default:', err);
+      currentProjectId.value = 'default';
+      localStorage.setItem('dev-flow-current-project', 'default');
+      loadProject('default').then(() => {
+        setTimeout(() => {
+          isInitialLoad = false;
+          console.log('✅ Initial load complete, auto-save enabled');
+        }, 100);
+      });
+    });
 
   async function loadWorkflows() {
     loading.value = true;
