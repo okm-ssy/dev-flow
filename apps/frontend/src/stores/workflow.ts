@@ -326,6 +326,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   function updateNode(id: string, data: Partial<Node>) {
     nodes.value = nodes.value.map((node) => (node.id === id ? { ...node, ...data } : node));
+    // 即座に保存（ノード詳細変更時）
+    saveProject();
   }
 
   function deleteNode(id: string) {

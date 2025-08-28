@@ -23,6 +23,7 @@
         @connect="onConnect"
         @node-click="handleNodeClick"
         @node-double-click="handleNodeDoubleClick"
+        @node-drag-stop="handleNodeDragStop"
         @edge-click="handleEdgeClick"
         @pane-click="handlePaneClick"
         @nodes-delete="onNodesDelete"
@@ -110,7 +111,8 @@ import CustomNode from './nodes/CustomNode.vue';
 const workflowStore = useWorkflowStore();
 const { nodes, edges, currentWorkflow, error, selectedNode } = storeToRefs(workflowStore);
 
-const { onConnect, addNode, updateNode, selectNode, removeNodes, removeEdges } = workflowStore;
+const { onConnect, addNode, updateNode, selectNode, removeNodes, removeEdges, saveProject } =
+  workflowStore;
 
 const { project } = useVueFlow();
 const { edgeDepths } = useEdgeDepth(nodes.value, edges.value);
@@ -189,6 +191,11 @@ function handleNodeDoubleClick(event: { node: Node }) {
 
 function handlePaneClick() {
   selectNode(null);
+}
+
+function handleNodeDragStop() {
+  // ノードのドラッグが終了したら即座に保存
+  saveProject();
 }
 
 function handleEdgeClick(event: { edge: Edge }) {
