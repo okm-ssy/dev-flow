@@ -1,16 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <!-- White background circle -->
-  <circle cx="16" cy="16" r="15" fill="white" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#1e293b"/>
   
-  <!-- Two puzzle pieces that clearly look like puzzle pieces -->
-  <g>
-    <!-- Left puzzle piece with tab on right -->
-    <path fill="#ff6b35" d="M6 9h9v4h2c1.1 0 2 .9 2 2s-.9 2-2 2h-2v6H6V9z" stroke="#fff" stroke-width="0.5"/>
-    
-    <!-- Right puzzle piece with slot on left -->
-    <path fill="#ff8c5a" d="M17 9h9v14h-9v-6h-2c-1.1 0-2-.9-2-2s.9-2 2-2h2V9z" stroke="#fff" stroke-width="0.5"/>
-  </g>
+  <!-- Nodes and connections -->
+  <!-- Top node -->
+  <circle cx="16" cy="8" r="3" fill="#60a5fa"/>
   
-  <!-- Border for better visibility -->
-  <circle cx="16" cy="16" r="14.5" fill="none" stroke="#e0e0e0" stroke-width="0.5" />
+  <!-- Middle left node -->
+  <circle cx="8" cy="16" r="3" fill="#34d399"/>
+  
+  <!-- Middle right node -->
+  <circle cx="24" cy="16" r="3" fill="#a78bfa"/>
+  
+  <!-- Bottom node -->
+  <circle cx="16" cy="24" r="3" fill="#f472b6"/>
+  
+  <!-- Connections -->
+  <path d="M16 8 L8 16 L16 24 L24 16 Z" 
+        fill="none" 
+        stroke="#64748b" 
+        stroke-width="1.5"
+        opacity="0.6"/>
+  
+  <!-- Center highlight -->
+  <circle cx="16" cy="16" r="2" fill="#fbbf24"/>
 </svg>
